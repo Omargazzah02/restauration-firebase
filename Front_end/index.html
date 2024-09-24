@@ -1,0 +1,88 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+  <meta charset="UTF-8">
+  <meta name="viewport" content="width=device-width, initial-scale=1.0">
+  <title>Login</title>
+  <link rel="stylesheet" href="./style.css">
+
+</head>
+
+<body>
+  <form id="loginForm">
+    <fieldset>
+      <legend>Login</legend>
+      <label>Email</label>
+      <input type="email" id="email" required>
+      <br> <br>
+      <label>Password</label>
+      <input type="password" id="password" required>
+      <br> <br>
+   
+    
+      <button id="loginButton">Login</button>
+      <br>
+      <br> 
+      <a href="inscrire.html">Inscrire </a>
+    </fieldset>
+  </form>
+
+<script>
+
+document.getElementById('loginForm').addEventListener('submit', async function(event) {
+    event.preventDefault(); // Empêcher le formulaire de se soumettre normalement
+
+    // Récupérer les valeurs des champs
+    const email = document.getElementById('email').value;
+    const password = document.getElementById('password').value;
+
+    // Envoyer les données au serveur
+    try {
+        const response = await fetch('https://server-restauration.onrender.com/login', {
+            method: 'POST',
+            headers: {
+                'Content-Type': 'application/json'
+            },
+            body: JSON.stringify({email, password})
+        });
+
+        const data = await response.json();
+
+        if (response.ok) {
+            storeToken(data.token);
+            console.log('Authentification réussie');
+            console.log('Token:', data.token);
+          role=getUserRoleFromToken() 
+            
+
+            // Redirection en fonction du rôle
+            if (role == 'restauration') {
+                window.location.href = './Restauration/display_retaurants.html' 
+            } else if (role == 'client') {
+              window.location.href = './client/display_restaurants.html';
+
+            } else {
+                alert('Rôle non reconnu:', role);
+            }
+        } else {
+            alert('Erreur d\'authentification:', data.error);
+        }
+    } catch (error) {
+        alert('Erreur lors de la requête:', error);
+    }
+});
+  
+</script>
+
+
+<script src="./client.js">
+</script>
+
+
+
+
+
+
+
+</body>
+</html>

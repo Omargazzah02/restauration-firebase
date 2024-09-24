@@ -1,0 +1,187 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>Liste des Restaurants</title>
+    <link rel="stylesheet" href="../style.css">
+    <style>
+        /* Style de chaque restaurant */
+        .restaurant-item {
+            border: 1px solid #ccc;
+            border-radius: 8px;
+            padding: 20px;
+            margin-bottom: 20px;
+            background-color: #fff;
+            box-shadow: 0 2px 4px rgba(0, 0, 0, 0.1);
+        }
+    
+        .restaurant-item img {
+            max-width: 100%;
+            height: auto;
+            margin-bottom: 10px;
+            border-radius: 4px;
+        }
+    
+        .restaurant-item p {
+            margin: 5px 0;
+        }
+    
+        /* Style du bouton de suppression */
+        .delete-button {
+            background-color: #dc3545;
+            color: #fff;
+            border: none;
+            padding: 8px 16px;
+            border-radius: 4px;
+            cursor: pointer;
+            transition: background-color 0.3s ease;
+        }
+    
+        .delete-button:hover {
+            background-color: #c82333;
+        }
+
+        body {
+        font-family: Arial, sans-serif;
+        line-height: 1.6;
+        background-color: #f4f4f4;
+        margin: 0;
+        padding: 0;
+    }
+    
+    .container {
+        max-width: 800px;
+        margin: auto;
+        padding: 20px;
+    }
+    
+    /* Style de la barre de navigation */
+    nav {
+        background-color: #333;
+        color: #fff;
+        padding: 10px;
+    }
+    
+    nav ul {
+        list-style-type: none;
+        padding: 0;
+    }
+    
+    nav ul li {
+        display: inline;
+        margin-right: 10px;
+    }
+    
+    nav ul li a {
+        color: #fff;
+        text-decoration: none;
+    }
+    
+    nav ul li a:hover {
+        text-decoration: underline;
+    }
+    
+    /* Style de la liste des restaurants */
+    #restaurantList {
+        list-style: none;
+        padding: 0;
+    }
+    
+    #restaurantList li {
+        background-color: #fff;
+        border: 1px solid #ccc;
+        margin-bottom: 10px;
+        padding: 20px;
+    }
+    
+    #restaurantList li img {
+        max-width: 100%;
+        height: auto;
+        margin-bottom: 10px;
+    }
+    
+    #restaurantList li p {
+        margin: 5px 0;
+    }
+    
+    /* Style du titre */
+    h1 {
+        text-align: center;
+        margin-top: 20px;
+    }
+    
+    /* Style du message en cas de liste vide */
+    #restaurantList.empty {
+        text-align: center;
+        font-style: italic;
+        color: #888;}
+    </style>
+</head>
+<body>
+    <nav>
+        <ul>
+            <li><a href="./add_restaurant.html">Ajouter un restaurant</a></li>
+            <li><a href="./display_comment.html">Liste des commentaires</a></li>
+            <li><a href="./display_retaurants.html">Liste des restaurants</a></li>
+            <li><a href="../index.html" onclick="removeToken()">Se déconnecter</a></li>
+        </ul>
+    </nav>
+
+    <h1>Liste des Restaurants</h1>
+    <ul id="restaurantList"></ul>
+
+    <script src="../client.js"></script>
+    <script>
+        async function fetchUserRestaurants() {
+            try {
+                const id_restauration = getUserIdFromToken();
+                // Effectuer une requête GET pour récupérer les restaurants
+                const response = await fetch(`https://server-restauration.onrender.com/restaurants/${id_restauration}`);
+                const restaurants = await response.json();
+
+                // Afficher les restaurants dans la liste
+                const restaurantListContainer = document.getElementById('restaurantList');
+                if (restaurants.length > 0) {
+                    restaurantListContainer.innerHTML = '';
+                    restaurants.forEach(restaurant => {
+                        const listItem = document.createElement('li');
+                        listItem.innerHTML = `
+                            <p><strong>Nom:</strong> ${restaurant.nom}</p>
+                            <p><strong>Adresse:</strong> ${restaurant.adresse}</p>
+                            <p><strong>Code Postal:</strong> ${restaurant.codepostal}</p>
+                            <img src="${restaurant.photo}" alt="Photo du restaurant">
+                            <br>
+                            <button class="delete-button" onclick="(async () => {
+                                try {
+                                    const response = await fetch('https://server-restauration.onrender.com/restaurants/${restaurant.id}', {
+                                        method: 'DELETE'
+                                    });
+                                    if (response.ok) {
+                                        // Actualiser la liste des restaurants après la suppression
+                                        fetchUserRestaurants();
+                                        alert('Restaurant supprimé avec succès');
+                                    } else {
+                                        throw new Error('Erreur lors de la suppression du restaurant');
+                                    }
+                                } catch (error) {
+                                    console.error('Erreur lors de la suppression du restaurant:', error.message);
+                                    alert('Erreur lors de la suppression du restaurant');
+                                }
+                            })()">Supprimer</button>
+                        `;
+                        restaurantListContainer.appendChild(listItem);
+                    });
+                } else {
+                    restaurantListContainer.innerHTML = '<p>Aucun restaurant trouvé.</p>';
+                }
+            } catch (error) {
+                console.error('Erreur lors de la récupération des restaurants:', error.message);
+                // Gérer l'erreur ici
+            }
+        }
+
+        fetchUserRestaurants();
+    </script>
+</body>
+</html>
